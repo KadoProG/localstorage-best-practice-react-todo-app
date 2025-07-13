@@ -1,8 +1,10 @@
+import { TodoList } from './components/TodoList';
+
 function App() {
   return (
-    <>
-      <h1 className="text-4xl">LocalStorage TODO App</h1>
-    </>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <TodoList />
+    </div>
   );
 }
 
