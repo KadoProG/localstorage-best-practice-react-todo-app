@@ -1,69 +1,42 @@
-# React + TypeScript + Vite
+# LocalStorage Best Practice React Todo App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+LocalStorageを用いたフロントエンドアプリケーションの、自分の中の最適解を示しました。
 
-Currently, two official plugins are available:
+## [src/utils/store/index.ts](./src/utils/store/index.ts)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+ローカルストレージを一括で管理する関数。
 
-## Expanding the ESLint configuration
+### LocalStorageのKeyを実質１キーのみで管理
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+ローカルマシンで開発していくと、複数の LocalStorage を使用した際にキーがコンフリクトする恐れがあります。そこで、１アプリケーションで 1 Key を使用し、複数のオブジェクトを格納したい際も１つの関数で呼び出しをすることができます。
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 型定義の厳格化
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+LocalStorageの値は必ずしも正しい値が格納されていることの保証はできません。少なくとも、この関数を使用すれば、意図しないデータをsetすることを最小限にとどめます。
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+get, setは、複数のストレージキーを自身で設定でき、取得、更新時は最大限型定義の恩恵を受けることができます。
+
+```ts
+/** `store` (property) get: <"todos">(key: "todos") => TodoItem[] */
+const todos = store.get('todos');
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 初期セットアップ
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```shell
+# install package
+npm ci
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# serve
+npm run dev
+```
+
+## ツール
+
+```shell
+# format
+npm run prettier
+
+# test (vitest)
+npm run test
 ```
