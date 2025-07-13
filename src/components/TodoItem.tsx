@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import type { TodoItem as TodoItemType } from '../utils/store';
-import { store } from '../utils/store';
+
+import { todoService } from '../utils/todoService';
+import type { TodoItem } from '../utils/todoService/types';
 
 interface TodoItemProps {
-  todo: TodoItemType;
-  onUpdate: (todo: TodoItemType) => void;
+  todo: TodoItem;
+  onUpdate: (todo: TodoItem) => void;
   onDelete: (id: string) => void;
 }
 
@@ -13,7 +14,7 @@ export function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
   const [editText, setEditText] = useState(todo.text);
 
   const handleToggle = () => {
-    const updatedTodo = store.toggleTodo(todo.id);
+    const updatedTodo = todoService.toggleTodo(todo.id);
     if (updatedTodo) {
       onUpdate(updatedTodo);
     }
@@ -25,7 +26,7 @@ export function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
 
   const handleSave = () => {
     if (editText.trim()) {
-      const updatedTodo = store.updateTodo(todo.id, { text: editText.trim() });
+      const updatedTodo = todoService.updateTodo(todo.id, { text: editText.trim() });
       if (updatedTodo) {
         onUpdate(updatedTodo);
       }
@@ -39,7 +40,7 @@ export function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
   };
 
   const handleDelete = () => {
-    if (store.deleteTodo(todo.id)) {
+    if (todoService.deleteTodo(todo.id)) {
       onDelete(todo.id);
     }
   };

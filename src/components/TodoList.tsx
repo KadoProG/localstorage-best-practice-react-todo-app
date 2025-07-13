@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { TodoItem } from '../utils/store';
-import { store } from '../utils/store';
+import type { TodoItem } from '../utils/todoService/types';
+import { todoService } from '../utils/todoService';
 import { TodoItem as TodoItemComponent } from './TodoItem';
 
 type FilterType = 'all' | 'active' | 'completed';
@@ -12,12 +12,12 @@ export function TodoList() {
 
   useEffect(() => {
     // 初期データを読み込み
-    setTodos(store.getTodos());
+    setTodos(todoService.getTodos());
   }, []);
 
   const addTodo = (text: string) => {
     if (text.trim()) {
-      const newTodo = store.addTodo(text.trim());
+      const newTodo = todoService.addTodo(text.trim());
       setTodos((prev) => [...prev, newTodo]);
       setNewTodoText('');
     }
@@ -32,9 +32,9 @@ export function TodoList() {
   };
 
   const clearCompleted = () => {
-    const deletedCount = store.clearCompleted();
+    const deletedCount = todoService.clearCompleted();
     if (deletedCount > 0) {
-      setTodos(store.getTodos());
+      setTodos(todoService.getTodos());
     }
   };
 
