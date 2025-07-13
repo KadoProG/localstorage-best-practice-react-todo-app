@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { LOCAL_STORAGE_KEY, store } from '.';
 
+// テスト用の共通データ
+const testTodo = {
+  id: '1',
+  text: 'test-todo',
+  completed: false,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
 // localStorageのモック
 const localStorageMock = {
   getItem: vi.fn(),
@@ -27,19 +36,19 @@ describe('store', () => {
 
       // localStorageが空の場合、デフォルト値を返す
       expect(store.get('theme')).toBe('device');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
     });
 
     it('localStorageに有効なデータがある場合、その値を返すこと', () => {
       const mockData = {
         theme: 'dark' as const,
-        token: 'test-token',
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockData));
 
       // localStorageに有効なデータがある場合、その値を返す
       expect(store.get('theme')).toBe('dark');
-      expect(store.get('token')).toBe('test-token');
+      expect(store.get('todos')).toEqual([testTodo]);
     });
 
     it('localStorageの値が不正なJSONの場合、デフォルト値を返すこと', () => {
@@ -47,31 +56,29 @@ describe('store', () => {
 
       // localStorageの値が不正なJSONの場合、デフォルト値を返す
       expect(store.get('theme')).toBe('device');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
     });
 
-    it('データの一部キーが欠損している場合、欠損分はデフォルト値を返すこと', () => {
+    it('データの一部キーが欠損している場合、欠損分はデフォルト値を返すこと[1]', () => {
       const mockData = {
-        theme: 'light' as const,
-        // tokenが存在しない場合
-      };
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockData));
-
-      // データの一部キーが欠損している場合、欠損分はデフォルト値を返す
-      expect(store.get('theme')).toBe('light');
-      expect(store.get('token')).toBeUndefined();
-    });
-
-    it('データの一部キーが欠損している場合、欠損分はデフォルト値を返すこと', () => {
-      const mockData = {
-        token: 'partial-token',
-        // themeが存在しない場合
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(mockData));
 
       // データの一部キーが欠損している場合、欠損分はデフォルト値を返す
       expect(store.get('theme')).toBe('device');
-      expect(store.get('token')).toBe('partial-token');
+      expect(store.get('todos')).toEqual([testTodo]);
+    });
+
+    it('データの一部キーが欠損している場合、欠損分はデフォルト値を返すこと[2]', () => {
+      const mockData = {
+        theme: 'dark' as const,
+      };
+      localStorageMock.getItem.mockReturnValue(JSON.stringify(mockData));
+
+      // データの一部キーが欠損している場合、欠損分はデフォルト値を返す
+      expect(store.get('theme')).toBe('dark');
+      expect(store.get('todos')).toEqual([]);
     });
   });
 
@@ -86,7 +93,7 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'dark',
-          token: undefined,
+          todos: [],
         })
       );
     });
@@ -94,18 +101,18 @@ describe('store', () => {
     it('localStorageに既存データがある場合、値を更新すること', () => {
       const existingData = {
         theme: 'light' as const,
-        token: 'old-token',
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(existingData));
 
       // localStorageに既存データがある場合、値を更新する
-      store.set('token', 'new-token');
+      store.set('todos', [testTodo]);
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'light',
-          token: 'new-token',
+          todos: [testTodo],
         })
       );
     });
@@ -120,7 +127,7 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'dark',
-          token: undefined,
+          todos: [],
         })
       );
     });
@@ -134,7 +141,7 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'light',
-          token: undefined,
+          todos: [],
         })
       );
 
@@ -143,7 +150,7 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'dark',
-          token: undefined,
+          todos: [],
         })
       );
 
@@ -152,30 +159,29 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'device',
-          token: undefined,
+          todos: [],
         })
       );
     });
 
-    it('tokenの値をセットできること', () => {
+    it('todosの値をセットできること', () => {
       localStorageMock.getItem.mockReturnValue(null);
-
-      // tokenの値をセットできること
-      store.set('token', 'test-token');
+      // todosの値をセットできること
+      store.set('todos', [testTodo]);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'device',
-          token: 'test-token',
+          todos: [testTodo],
         })
       );
 
-      store.set('token', undefined);
+      store.set('todos', []);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'device',
-          token: undefined,
+          todos: [],
         })
       );
     });
@@ -191,15 +197,15 @@ describe('store', () => {
       expect(localStorageMock.setItem).not.toHaveBeenCalled();
     });
 
-    it('should remove a key from existing data', () => {
+    it('既存データから指定したキーを削除すること', () => {
       const existingData = {
         theme: 'dark' as const,
-        token: 'test-token',
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(existingData));
 
       // 既存データから指定したキーを削除する
-      store.remove('token');
+      store.remove('todos');
 
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
@@ -221,7 +227,7 @@ describe('store', () => {
     it('themeキーを削除できること', () => {
       const existingData = {
         theme: 'light' as const,
-        token: 'test-token',
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(existingData));
 
@@ -231,7 +237,7 @@ describe('store', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
-          token: 'test-token',
+          todos: [testTodo],
         })
       );
     });
@@ -251,7 +257,7 @@ describe('store', () => {
       // 初期状態
       localStorageMock.getItem.mockReturnValue(null);
       expect(store.get('theme')).toBe('device');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
 
       // themeをセット
       store.set('theme', 'dark');
@@ -259,40 +265,40 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'dark',
-          token: undefined,
+          todos: [],
         })
       );
 
       // データが保存されたと仮定
       const storedData = {
         theme: 'dark' as const,
-        token: undefined,
+        todos: [],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(storedData));
 
       // 保存された値が取得できること
       expect(store.get('theme')).toBe('dark');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
 
-      // tokenをセット
-      store.set('token', 'new-token');
+      // todosをセット
+      store.set('todos', [testTodo]);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'dark',
-          token: 'new-token',
+          todos: [testTodo],
         })
       );
 
       // 更新後のデータが取得できること
       const updatedData = {
         theme: 'dark' as const,
-        token: 'new-token',
+        todos: [testTodo],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(updatedData));
 
       expect(store.get('theme')).toBe('dark');
-      expect(store.get('token')).toBe('new-token');
+      expect(store.get('todos')).toEqual([testTodo]);
     });
 
     it('エラー復旧を優雅に処理すること', () => {
@@ -304,7 +310,7 @@ describe('store', () => {
 
       // デフォルト値が返ること
       expect(store.get('theme')).toBe('device');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
 
       // setで不正データを上書きできること
       store.set('theme', 'light');
@@ -312,19 +318,19 @@ describe('store', () => {
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           theme: 'light',
-          token: undefined,
+          todos: [],
         })
       );
 
       // set後に有効なデータが保存されたと仮定
       const validData = {
         theme: 'light' as const,
-        token: undefined,
+        todos: [],
       };
       localStorageMock.getItem.mockReturnValue(JSON.stringify(validData));
       // 有効なデータが取得できること
       expect(store.get('theme')).toBe('light');
-      expect(store.get('token')).toBeUndefined();
+      expect(store.get('todos')).toEqual([]);
     });
   });
 });
